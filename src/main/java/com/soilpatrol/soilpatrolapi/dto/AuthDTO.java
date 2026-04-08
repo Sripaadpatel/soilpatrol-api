@@ -7,7 +7,12 @@ public class AuthDTO {
         public String email;
         public String password;
     }
-
+    public static class RegisterRequest {
+        public String fullName;
+        public String phoneNumber;
+        public String email;
+        public String password;
+    }
     // What we send back to Android
     public static class AuthResponse {
         public String ownerId;

@@ -23,16 +23,22 @@ public class AuthController {
     }
 
     // 1. The Registration Endpoint
+    // Notice it now takes RegisterRequest instead of LoginRequest
     @PostMapping("/register")
-    public ResponseEntity<AuthDTO.AuthResponse> register(@RequestBody AuthDTO.LoginRequest request) {
+    public ResponseEntity<AuthDTO.AuthResponse> register(@RequestBody AuthDTO.RegisterRequest request) {
         if (repository.findByEmail(request.email).isPresent()) {
             return ResponseEntity.badRequest().body(new AuthDTO.AuthResponse(null, "Email already exists"));
         }
 
         Profile newProfile = new Profile();
-        newProfile.setId(UUID.randomUUID()); // Generate a new ID for the farmer
+        newProfile.setId(UUID.randomUUID());
+
+        // Map the new fields!
+        newProfile.setFullName(request.fullName);
+        newProfile.setPhoneNumber(request.phoneNumber);
+
         newProfile.setEmail(request.email);
-        newProfile.setPassword(request.password); // In a real prod app, we would hash this!
+        newProfile.setPassword(request.password);
         newProfile.setCreatedAt(ZonedDateTime.now());
 
         repository.save(newProfile);
