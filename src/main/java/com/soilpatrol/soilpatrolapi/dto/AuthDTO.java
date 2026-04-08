@@ -29,5 +29,6 @@ public class AuthDTO {
         public String ownerId;     // The farmer's UUID
         public String locationName; // e.g., "North Tomato Field"
         public String cropType;     // e.g., "Tomatoes"
+        public String firmwareVersion; // Added this
     }
 }
