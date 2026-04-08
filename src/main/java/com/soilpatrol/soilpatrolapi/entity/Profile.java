@@ -22,7 +22,11 @@ public class Profile {
 
     @Column(name = "phone_number")
     private String phoneNumber;
+    @Column(name = "email", unique = true)
+    private String email;          // NEW!
 
+    @Column(name = "password")
+    private String password;       // NEW!
     @Column(name = "subscription_tier")
     private String subscriptionTier = "free";
 
