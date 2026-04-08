@@ -31,4 +31,12 @@ public class AuthDTO {
         public String cropType;     // e.g., "Tomatoes"
         public String firmwareVersion; // Added this
     }
+    // A simple wrapper to force Spring Boot to return JSON
+    public static class MessageResponse {
+        public String message;
+
+        public MessageResponse(String message) {
+            this.message = message;
+        }
+    }
 }

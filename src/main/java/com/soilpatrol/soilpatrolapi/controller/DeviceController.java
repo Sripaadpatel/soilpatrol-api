@@ -24,7 +24,7 @@ public class DeviceController {
 
     // 1. Register a new device to a user
     @PostMapping("/register")
-    public ResponseEntity<String> registerDevice(@RequestBody AuthDTO.DeviceRequest request) {
+    public ResponseEntity<AuthDTO.MessageResponse> registerDevice(@RequestBody AuthDTO.DeviceRequest request) {
         Device device = new Device();
         device.setDeviceId(request.deviceId);
         device.setOwnerId(UUID.fromString(request.ownerId));
@@ -33,7 +33,7 @@ public class DeviceController {
         device.setLastSeen(ZonedDateTime.now());
 
         deviceRepository.save(device);
-        return ResponseEntity.ok("Device registered successfully");
+        return ResponseEntity.ok(new AuthDTO.MessageResponse("Device registered successfully"));
     }
 
     // 2. Get all devices for a specific farmer (Used for the Android App Dashboard)
