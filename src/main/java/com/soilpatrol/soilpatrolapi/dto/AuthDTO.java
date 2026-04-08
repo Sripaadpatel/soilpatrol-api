@@ -23,4 +23,11 @@ public class AuthDTO {
             this.message = message;
         }
     }
+
+    public static class DeviceRequest {
+        public String deviceId;    // The hardware serial number
+        public String ownerId;     // The farmer's UUID
+        public String locationName; // e.g., "North Tomato Field"
+        public String cropType;     // e.g., "Tomatoes"
+    }
 }
