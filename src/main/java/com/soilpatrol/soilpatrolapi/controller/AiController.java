@@ -1,11 +1,7 @@
 package com.soilpatrol.soilpatrolapi.controller;
 
-import com.soilpatrol.soilpatrolapi.dto.AiRequestDTO;
-import com.soilpatrol.soilpatrolapi.dto.SupabaseSensorReading;
-import com.soilpatrol.soilpatrolapi.service.SupabaseService;
-// Import your Gemini/AI Service here if you have one!
-// import com.soilpatrol.soilpatrolapi.service.GeminiService;
-
+import com.soilpatrol.soilpatrolapi.dto.BrainDTO;
+import com.soilpatrol.soilpatrolapi.service.OrchestratorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,30 +13,82 @@ import java.util.Map;
 public class AiController {
 
     @Autowired
-    private SupabaseService supabaseService;
+    private OrchestratorService orchestrator;
 
-    // @Autowired
-    // private GeminiService geminiService;
-
+    // ==========================================
+    // 1. SUGGEST CROP ENDPOINT
+    // ==========================================
     @PostMapping("/suggest")
-    public ResponseEntity<?> getCropSuggestion(@RequestBody AiRequestDTO.SuggestionRequest request) {
+    public ResponseEntity<?> getSuggestion(@RequestBody Map<String, String> request) {
         try {
-            // 1. Fetch live data from Supabase securely
-            SupabaseSensorReading liveData = supabaseService.getLatestReading(request.deviceId);
+            String deviceId = request.get("deviceId");
 
-            // 2. Generate the report (Replace this with your actual Gemini logic)
-            // String report = geminiService.generateSuggestion(liveData);
-            String report = "Mock AI Report: Soil Nitrogen is " + liveData.nitrogenMg + " mg/kg. Soil is healthy!";
+            // Fetch, Clean, and Wrap
+            BrainDTO.SupabaseReading rawData = orchestrator.fetchSensorData(deviceId);
+            BrainDTO.CleanSensorData cleanData = new BrainDTO.CleanSensorData(rawData);
+            BrainDTO.BrainRequest brainRequest = new BrainDTO.BrainRequest(cleanData);
 
-            // 3. Return to Android
-            return ResponseEntity.ok(Map.of(
-                    "status", "success",
-                    "report", report
-            ));
+            // Ask Python Brain
+            Map<String, Object> finalReport = orchestrator.askBrain("suggest", brainRequest);
+
+            return ResponseEntity.ok(finalReport);
+
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
         }
     }
 
-    // You can add the @PostMapping("/check-in") and ("/suitability") here following the exact same pattern!
+    // ==========================================
+    // 2. CHECK-IN ENDPOINT (Needs currentCrop)
+    // ==========================================
+    @PostMapping("/check-in")
+    public ResponseEntity<?> getCheckIn(@RequestBody Map<String, String> request) {
+        try {
+            String deviceId = request.get("deviceId");
+            String currentCrop = request.get("currentCrop"); // Extracted from Android payload
+
+            // Fetch, Clean, and Wrap
+            BrainDTO.SupabaseReading rawData = orchestrator.fetchSensorData(deviceId);
+            BrainDTO.CleanSensorData cleanData = new BrainDTO.CleanSensorData(rawData);
+            BrainDTO.BrainRequest brainRequest = new BrainDTO.BrainRequest(cleanData);
+
+            // Attach the specific parameter for this endpoint
+            brainRequest.currentCrop = currentCrop;
+
+            // Ask Python Brain
+            Map<String, Object> finalReport = orchestrator.askBrain("check-in", brainRequest);
+
+            return ResponseEntity.ok(finalReport);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    // ==========================================
+    // 3. SUITABILITY ENDPOINT (Needs targetCrop)
+    // ==========================================
+    @PostMapping("/suitability")
+    public ResponseEntity<?> getSuitability(@RequestBody Map<String, String> request) {
+        try {
+            String deviceId = request.get("deviceId");
+            String targetCrop = request.get("targetCrop"); // Extracted from Android payload
+
+            // Fetch, Clean, and Wrap
+            BrainDTO.SupabaseReading rawData = orchestrator.fetchSensorData(deviceId);
+            BrainDTO.CleanSensorData cleanData = new BrainDTO.CleanSensorData(rawData);
+            BrainDTO.BrainRequest brainRequest = new BrainDTO.BrainRequest(cleanData);
+
+            // Attach the specific parameter for this endpoint
+            brainRequest.targetCrop = targetCrop;
+
+            // Ask Python Brain
+            Map<String, Object> finalReport = orchestrator.askBrain("suitability", brainRequest);
+
+            return ResponseEntity.ok(finalReport);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
+        }
+    }
 }
